@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Health Services - Accident Reporting System</title>
+  <link rel="icon" href="assets/logo-mvbi.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <section id="loginView" class="login-shell">
+    <div class="login-card">
+      <div class="brand">
+        <img src="assets/logo-mvbi.png" alt="Health Services logo" onerror="this.style.display='none'">
+        <div>
+          <div class="brand-title">HEALTH SERVICES</div>
+          <div class="brand-subtitle">ACCIDENT REPORTING SYSTEM</div>
+        </div>
+      </div>
+
+      <h1>Sign in</h1>
+      <p class="muted">Authorized CGSI, CLMC, VFI and MVBI users only.</p>
+
+      <form id="loginForm">
+        <label>Company
+          <select id="loginCompany" required>
+            <option value="">Select company</option>
+            <option>CGSI</option>
+            <option>CLMC</option>
+            <option>VFI</option>
+            <option>MVBI</option>
+          </select>
+        </label>
+
+        <label>Username
+          <input id="loginUsername" autocomplete="username" required>
+        </label>
+
+        <label>Password
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
+        </label>
+
+        <button class="primary full" type="submit">LOGIN</button>
+      </form>
+
+      <div class="setup-note">
+        <strong>System administrator:</strong> create the users in Supabase Authentication and give each user a profile with the correct company.
+      </div>
+    </div>
+  </section>
+
+  <section id="appView" class="app-shell hidden">
+    <header class="topbar">
+      <div>
+        <div class="top-title">HEALTH SERVICES</div>
+        <div class="top-subtitle">ACCIDENT REPORTING SYSTEM</div>
+      </div>
+      <div class="top-actions">
+        <span id="userBadge" class="badge"></span>
+        <button id="logoutBtn" class="secondary">LOGOUT</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="page-head">
+        <div>
+          <h1 id="companyHeading">Dashboard</h1>
+          <p class="muted">Encode accident records and generate the monthly report.</p>
+        </div>
+        <div class="actions">
+          <button id="newBtn" class="primary">+ NEW ACCIDENT REPORT</button>
+          <button id="reportBtn" class="secondary">PRINT MONTHLY REPORT</button>
+        </div>
+      </div>
+
+      <section id="dashboardSection">
+        <div class="stats">
+          <div class="stat"><span>Total Records</span><strong id="statTotal">0</strong></div>
+          <div class="stat"><span>This Month</span><strong id="statMonth">0</strong></div>
+          <div class="stat"><span>FIT</span><strong id="statFit">0</strong></div>
+          <div class="stat"><span>FOR FOLLOW-UP</span><strong id="statFollow">0</strong></div>
+          <div class="stat"><span>UNFIT</span><strong id="statUnfit">0</strong></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Accident Records</h2>
+            <div class="search-wrap">
+              <input id="searchInput" placeholder="Search employee, department, place...">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Date & Time</th>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Place</th>
+                  <th>Fit-to-Work</th>
+                  <th>Picture</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="formSection" class="panel hidden">
+        <div class="panel-head">
+          <div>
+            <h2 id="formTitle">New Accident Report</h2>
+            <p class="muted">Company is automatically taken from your login.</p>
+          </div>
+          <button id="cancelBtn" class="secondary">CANCEL</button>
+        </div>
+
+        <form id="accidentForm" class="form-grid">
+          <input type="hidden" id="recordId">
+
+          <label>Date & Time of Accident
+            <input id="accidentAt" type="datetime-local" required>
+          </label>
+
+          <label>Place of Accident
+            <input id="place" required>
+          </label>
+
+          <label>Date & Time Reported
+            <input id="reportedAt" type="datetime-local" required>
+          </label>
+
+          <label>Name of Employee
+            <input id="employeeName" required>
+          </label>
+
+          <label>Age
+            <input id="age" type="number" min="0" max="120" required>
+          </label>
+
+          <label>Sex
+            <select id="sex" required>
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </label>
+
+          <label>Department
+            <input id="department" required>
+          </label>
+
+          <label class="full-row">Nature and History of Accident
+            <textarea id="natureHistory" rows="7" required></textarea>
+          </label>
+
+          <label class="full-row">Intervention
+            <textarea id="intervention" rows="7" required></textarea>
+          </label>
+
+          <label>Fit-to-Work
+            <select id="fitToWork" required>
+              <option value="">Select</option>
+              <option>FIT</option>
+              <option>UNFIT</option>
+              <option>FOR FOLLOW-UP</option>
+            </select>
+          </label>
+
+          <label>Picture
+            <input id="picture" type="file" accept="image/jpeg,image/png,image/webp">
+            <span id="currentPicture" class="file-note"></span>
+          </label>
+
+          <div id="picturePreviewWrap" class="preview-wrap hidden full-row">
+            <span>Picture preview</span>
+            <img id="picturePreview" alt="Accident preview">
+          </div>
+
+          <div class="form-actions full-row">
+            <button class="primary" type="submit" id="saveBtn">SAVE ACCIDENT REPORT</button>
+            <button class="secondary" type="button" id="cancelBtn2">CANCEL</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="reportSection" class="panel hidden">
+        <div class="panel-head">
+          <div>
+            <h2>Generate Monthly Accident Report</h2>
+            <p class="muted">The report uses the Date & Time of Accident for monthly filtering.</p>
+          </div>
+          <button id="closeReportBtn" class="secondary">CLOSE</button>
+        </div>
+        <div class="report-controls">
+          <label>Month
+            <select id="reportMonth"></select>
+          </label>
+          <label>Year
+            <select id="reportYear"></select>
+          </label>
+          <button id="generateReportBtn" class="primary">GENERATE REPORT</button>
+        </div>
+        <div id="reportPreview" class="report-preview hidden"></div>
+      </section>
+    </main>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
